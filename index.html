@@ -255,7 +255,8 @@
     window.addEventListener("offline", () => { NET_STATE.online = false; showToast("OFFLINE · USING SAVED DATA"); });
 
     // 🟢 NEW EXTENDED FALLBACK MENU
-    const FALLBACK_MENU = {
+    const FALLBACK_MENU = [
+        {
   "link_id": "custom_setup_request",
   "link_type": "b2b_intake",
   "version": "v1.0",
