@@ -2,237 +2,144 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>| food.decide · custom |</title>
 
 <style>
 :root{
-  --bg:#0a0a0a;--text:#f0f0f0;--accent:#ff671f;--go:#00e676;
-  --mono:'Courier New',monospace;
+  --bg:#0a0a0a;
+  --orange:#ff671f;
+  --green:#00e676;
+  --text:#f0f0f0;
+  --muted:#666;
+  --mono:'Courier New', monospace;
+  --ui:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
+
 html,body{
-  margin:0;height:100%;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
-  overflow:hidden;touch-action:none;
+  margin:0;height:100%;background:var(--bg);
+  color:var(--text);font-family:var(--ui);overflow:hidden;
 }
-#app{position:relative;width:100vw;height:100vh}
+
 .slide{
   position:absolute;inset:0;
-  transform:translateY(100%);
-  transition:.45s cubic-bezier(.2,.8,.2,1);
-  display:flex;flex-direction:column;
+  padding:30px 24px 90px;
+  display:flex;flex-direction:column;justify-content:center;
+  transition:transform .4s ease;
 }
-.slide.active{transform:translateY(0);z-index:10}
+
+.slide.next{transform:translateY(100%)}
 .slide.prev{transform:translateY(-100%)}
+.slide.active{transform:translateY(0)}
 
-.header{padding:20px;border-left:3px solid var(--accent)}
-.header span{font-family:var(--mono);font-size:.7rem;color:var(--accent)}
+h1{color:var(--orange);font-size:2rem;margin:0 0 20px}
+.option{font-size:1.2rem;font-weight:700;margin-bottom:10px}
 
-.center{
-  flex:1;display:flex;flex-direction:column;
-  justify-content:center;padding:30px;
-}
-h1{margin:0 0 20px 0;color:var(--accent)}
-.option{
-  font-size:1.4rem;font-weight:700;
-}
-.hint{
-  margin-top:40px;font-family:var(--mono);
-  font-size:.7rem;color:#666;
-  display:flex;justify-content:space-between;
+.role{font-family:var(--mono);font-size:.65rem;
+  background:var(--green);color:#000;
+  padding:4px 8px;border-radius:4px;width:max-content;
+  margin-bottom:12px
 }
 
-#depth{position:fixed;right:0;top:0;width:4px;height:0;background:#333}
-#toast{
-  position:fixed;bottom:80px;left:50%;
-  transform:translateX(-50%);
-  background:#222;color:var(--go);
-  padding:8px 16px;border-radius:20px;
-  font-family:var(--mono);opacity:0;transition:.25s
+.nav{
+  position:absolute;bottom:20px;left:0;width:100%;
+  display:grid;grid-template-columns:1fr auto 1fr;
+  padding:0 24px;font-family:var(--mono);
+  font-size:.65rem;color:var(--muted);
+  pointer-events:none;
 }
-#toast.show{opacity:1}
-
-.btn{
-  background:#25D366;color:#000;
-  padding:18px;border-radius:10px;
-  font-weight:900;text-align:center;
-}
+.nav .l{text-align:left;color:#ff3333;font-weight:bold}
+.nav .c{text-align:center;color:var(--green);font-weight:bold}
+.nav .r{text-align:right}
 </style>
 </head>
 
 <body>
 
 <div id="app"></div>
-<div id="depth"></div>
-<div id="toast"></div>
 
 <script>
-/* ===============================
-   CONFIG (EDIT IF NEEDED)
-================================ */
-const WHATSAPP_NUMBER = "916351537770";
+const WHATSAPP = "https://wa.me/916351537770?text=";
 
-const FLOW = [
-  {
-    key:"business_type",
-    title:"Your Business Type",
-    options:[
-      "Single Restaurant",
-      "Cloud Kitchen",
-      "Multiple Outlets",
-      "Delivery Operator",
-      "Personal / Internal Use"
-    ]
-  },
-  {
-    key:"primary_goal",
-    title:"Primary Goal",
-    options:[
-      "Reduce platform dependency",
-      "WhatsApp-only orders",
-      "Internal staff usage",
-      "Faster customer decisions",
-      "Not sure yet"
-    ]
-  },
-  {
-    key:"order_volume",
-    title:"Estimated Orders / Day",
-    options:[
-      "< 10",
-      "10 – 50",
-      "50 – 200",
-      "200+"
-    ]
-  },
-  {
-    key:"pricing_intent",
-    title:"How do you want to pay?",
-    options:[
-      "Trial / Free",
-      "Monthly fee",
-      "Per inquiry",
-      "Custom setup"
-    ]
-  }
+const state = {};
+
+const slides = [
+ {id:"intro", title:"Build Your Own Engine", options:["Swipe to continue"], key:null},
+ {id:"business", title:"Your Business Type", options:[
+   "Single Restaurant","Cloud Kitchen","Multiple Outlets","Personal / Internal"
+ ], key:"business"},
+ {id:"goal", title:"Primary Goal", options:[
+   "WhatsApp-only orders","Reduce platform dependency",
+   "Internal staff flow","Custom / Not sure"
+ ], key:"goal"},
+ {id:"volume", title:"Orders per day", options:[
+   "< 10","10–50","50–200","200+"
+ ], key:"volume"},
+ {id:"pricing", title:"How do you want to pay?", options:[
+   "Trial","Monthly fee","Per-order","Custom setup"
+ ], key:"pricing"},
+ {id:"final", title:"Send Request", options:["Send to WhatsApp"], key:"send"}
 ];
 
-/* ===============================
-   STATE
-================================ */
-let slides=[],idx=0;
-const STATE={};
+let idx=0,startY=0;
 
-/* ===============================
-   UI BUILD
-================================ */
 const app=document.getElementById("app");
 
-FLOW.forEach((step,i)=>{
-  const s=document.createElement("section");
-  s.className="slide"+(i===0?" active":"");
-  s.dataset.key=step.key;
-  s.dataset.opt=0;
-  s.innerHTML=`
-    <div class="header"><span>SWIPE · CUSTOM SETUP</span></div>
-    <div class="center">
-      <h1>${step.title}</h1>
-      <div class="option">${step.options[0]}</div>
-      <div class="hint">
-        <span>← BROWSE</span>
-        <span>SWIPE ↓ SELECT</span>
-        <span>SKIP →</span>
-      </div>
-    </div>`;
-  app.appendChild(s);
-  slides.push(s);
-});
-
-const final=document.createElement("section");
-final.className="slide";
-final.innerHTML=`
-  <div class="header"><span>FINAL</span></div>
-  <div class="center">
-    <h1>Send Request</h1>
-    <div class="btn" onclick="sendWA()">SEND ON WHATSAPP</div>
-  </div>`;
-app.appendChild(final);
-slides.push(final);
-
-/* ===============================
-   HELPERS
-================================ */
-function toast(t){
-  const el=document.getElementById("toast");
-  el.textContent=t;el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"),1400);
+function render(){
+ app.innerHTML="";
+ slides.forEach((s,i)=>{
+  const d=document.createElement("div");
+  d.className="slide "+(i===idx?"active":i<idx?"prev":"next");
+  d.innerHTML=`
+   <div class="role">SWIPE · CUSTOM SETUP</div>
+   <h1>${s.title}</h1>
+   <div class="option">${s.options[ state[s.key] ? state[s.key] : 0 ]}</div>
+   <div class="nav">
+    <span class="l">← BROWSE</span>
+    <span class="c">SWIPE ↓ SELECT</span>
+    <span class="r">SKIP →</span>
+   </div>`;
+  app.appendChild(d);
+ });
 }
 
-function next(){
-  if(idx>=slides.length-1)return;
-  slides[idx].classList.remove("active");
-  slides[idx].classList.add("prev");
-  idx++;slides[idx].classList.add("active");
+function swipe(dir){
+ const s=slides[idx];
+ if(dir==="down"){
+   if(s.key && s.key!=="send"){
+     state[s.key]=slides[idx].options[0];
+   }
+   if(s.key==="send"){
+     sendWA();return;
+   }
+   idx=Math.min(idx+1,slides.length-1);
+ }
+ if(dir==="up") idx=Math.max(idx-1,0);
+ render();
 }
 
-/* ===============================
-   TOUCH
-================================ */
-let sx=0,sy=0;
-app.addEventListener("touchstart",e=>{
-  sx=e.touches[0].clientX;
-  sy=e.touches[0].clientY;
-},{passive:true});
-
-app.addEventListener("touchmove",e=>{
-  const dy=e.touches[0].clientY-sy;
-  if(dy>0){
-    e.preventDefault();
-    document.getElementById("depth").style.height=Math.min(dy/2,100)+"%";
-  }
-},{passive:false});
-
-app.addEventListener("touchend",e=>{
-  const dx=e.changedTouches[0].clientX-sx;
-  const dy=e.changedTouches[0].clientY-sy;
-  document.getElementById("depth").style.height="0%";
-
-  const slide=slides[idx];
-  if(!slide.dataset.key){ if(dy>60)next(); return; }
-
-  let opt=+slide.dataset.opt;
-  const opts=FLOW[idx].options;
-
-  if(Math.abs(dy)>Math.abs(dx) && dy>60){
-    STATE[slide.dataset.key]=opts[opt];
-    toast("Selected");
-    next();
-  }
-  else if(dx>60){
-    opt=(opt+1)%opts.length;
-    slide.dataset.opt=opt;
-    slide.querySelector(".option").textContent=opts[opt];
-  }
-  else if(dx<-60){
-    toast("Skipped");
-    next();
-  }
-});
-
-/* ===============================
-   WHATSAPP
-================================ */
 function sendWA(){
-  let txt="📋 *CUSTOM SETUP REQUEST*\n----------------\n";
-  Object.entries(STATE).forEach(([k,v])=>{
-    txt+=`${k.replace(/_/g," ")}: ${v}\n`;
-  });
-  txt+="----------------\nYou decide once. We handle the rest.";
-  window.open(
-    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(txt)}`,
-    "_blank"
-  );
+ if(!state.business||!state.goal||!state.volume||!state.pricing) return;
+ const text=
+`📋 *CUSTOM SETUP REQUEST*
+----------------
+Business: ${state.business}
+Goal: ${state.goal}
+Volume: ${state.volume}
+Pricing: ${state.pricing}
+----------------
+“You decide once. We handle the rest.”`;
+ location.href=WHATSAPP+encodeURIComponent(text);
 }
+
+document.addEventListener("touchstart",e=>startY=e.touches[0].clientY);
+document.addEventListener("touchend",e=>{
+ const dy=e.changedTouches[0].clientY-startY;
+ if(dy>50) swipe("down");
+ if(dy<-50) swipe("up");
+});
+
+render();
 </script>
 </body>
 </html>
