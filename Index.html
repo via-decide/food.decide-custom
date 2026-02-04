@@ -1,0 +1,108 @@
+{
+  "link_id": "custom_setup_request",
+  "link_type": "b2b_intake",
+  "version": "v1.0",
+  "entry_context": {
+    "purpose": "collect_customization_requirements",
+    "audience": ["restaurant_owner", "cloud_kitchen", "operator", "personal_user"],
+    "cta": "Swipe to configure your own engine"
+  },
+  "slides": [
+    {
+      "id": "intro",
+      "type": "info",
+      "title": "Build Your Own Order Engine",
+      "prompt": "Swipe to tell us what you want",
+      "actions": ["continue"]
+    },
+    {
+      "id": "business_type",
+      "type": "single_select",
+      "title": "Your Business Type",
+      "options": [
+        "Single Restaurant",
+        "Cloud Kitchen",
+        "Multiple Outlets",
+        "Delivery Operator",
+        "Personal / Internal Use"
+      ],
+      "state_key": "business_type"
+    },
+    {
+      "id": "primary_goal",
+      "type": "single_select",
+      "title": "Primary Goal",
+      "options": [
+        "Reduce platform dependency",
+        "Faster ordering for customers",
+        "WhatsApp-only orders",
+        "Internal staff ordering",
+        "Custom flow / Not sure"
+      ],
+      "state_key": "primary_goal"
+    },
+    {
+      "id": "order_volume",
+      "type": "single_select",
+      "title": "Estimated Orders Per Day",
+      "options": [
+        "< 10 orders/day",
+        "10–50 orders/day",
+        "50–200 orders/day",
+        "200+ orders/day"
+      ],
+      "state_key": "order_volume_estimate"
+    },
+    {
+      "id": "delivery_model",
+      "type": "single_select",
+      "title": "Delivery Model",
+      "options": [
+        "Self-managed delivery",
+        "Need delivery support",
+        "Pickup only / No delivery"
+      ],
+      "state_key": "delivery_model"
+    },
+    {
+      "id": "pricing_intent",
+      "type": "single_select",
+      "title": "How Do You Want to Pay?",
+      "options": [
+        "Trial / Free",
+        "Small monthly fee",
+        "Per-order fee",
+        "Full custom setup"
+      ],
+      "state_key": "pricing_intent",
+      "qualifier": true
+    },
+    {
+      "id": "handoff",
+      "type": "final",
+      "title": "Send Request",
+      "action": "generate_whatsapp"
+    }
+  ],
+  "output_template": {
+    "channel": "whatsapp",
+    "format": "text",
+    "template": "📋 *CUSTOM SETUP REQUEST*\n----------------\nBusiness Type: {{business_type}}\nGoal: {{primary_goal}}\nVolume: {{order_volume_estimate}}\nDelivery: {{delivery_model}}\nPricing Intent: {{pricing_intent}}\n----------------\n📍 City: {{location}}\n"
+  },
+  "state_defaults": {
+    "location": "unknown",
+    "timestamp": "auto"
+  },
+  "metrics": {
+    "track": [
+      "slide_completion_rate",
+      "pricing_intent_distribution",
+      "business_type_distribution",
+      "order_volume_distribution"
+    ]
+  },
+  "failure_handling": {
+    "on_exit_midway": "discard",
+    "on_missing_fields": "block_final_send"
+  }
+}
