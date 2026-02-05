@@ -33,9 +33,7 @@ html,body{
   justify-content:center;padding:30px;
 }
 h1{margin:0 0 20px 0;color:var(--accent)}
-.option{
-  font-size:1.4rem;font-weight:700;
-}
+.option{font-size:1.4rem;font-weight:700}
 .hint{
   margin-top:40px;font-family:var(--mono);
   font-size:.7rem;color:#666;
@@ -68,7 +66,7 @@ h1{margin:0 0 20px 0;color:var(--accent)}
 
 <script>
 /* ===============================
-   CONFIG (EDIT IF NEEDED)
+   CONFIG
 ================================ */
 const WHATSAPP_NUMBER = "916351537770";
 
@@ -139,9 +137,9 @@ FLOW.forEach((step,i)=>{
       <h1>${step.title}</h1>
       <div class="option">${step.options[0]}</div>
       <div class="hint">
-        <span>←SKIP </span>
+        <span>← SKIP</span>
         <span>SWIPE ↓ SELECT</span>
-        <span>BROWSE→</span>
+        <span>BROWSE →</span>
       </div>
     </div>`;
   app.appendChild(s);
@@ -175,6 +173,14 @@ function next(){
   idx++;slides[idx].classList.add("active");
 }
 
+function prev(){
+  if(idx<=0)return;
+  slides[idx].classList.remove("active");
+  idx--;
+  slides[idx].classList.remove("prev");
+  slides[idx].classList.add("active");
+}
+
 /* ===============================
    TOUCH
 ================================ */
@@ -203,19 +209,24 @@ app.addEventListener("touchend",e=>{
   let opt=+slide.dataset.opt;
   const opts=FLOW[idx].options;
 
-  if(Math.abs(dy)>Math.abs(dx) && dy>60){
-    STATE[slide.dataset.key]=opts[opt];
-    toast("Selected");
-    next();
-  }
-  else if(dx>60){
-    opt=(opt+1)%opts.length;
-    slide.dataset.opt=opt;
-    slide.querySelector(".option").textContent=opts[opt];
-  }
-  else if(dx<-60){
-    toast("Skipped");
-    next();
+  if(Math.abs(dy) > Math.abs(dx)){
+    if(dy > 60){
+      STATE[slide.dataset.key]=opts[opt];
+      toast("Selected");
+      next();
+    } else if(dy < -60){
+      toast("Back");
+      prev();
+    }
+  } else {
+    if(dx > 60){
+      opt=(opt+1)%opts.length;
+      slide.dataset.opt=opt;
+      slide.querySelector(".option").textContent=opts[opt];
+    } else if(dx < -60){
+      toast("Skipped");
+      next();
+    }
   }
 });
 
