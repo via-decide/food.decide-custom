@@ -267,64 +267,118 @@ slides.push(final);
 /* ===============================
    TOUCH HANDLING
 ================================ */
-let sx=0,sy=0;
-app.addEventListener("touchstart",e=>{
-  sx=e.touches[0].clientX;
-  sy=e.touches[0].clientY;
-},{passive:true});
+/* ===============================
+   UNIFIED CONTROLS (touch + mouse + keyboard)
+================================ */
+let sx=0, sy=0, isDragging=false;
 
-app.addEventListener("touchmove",e=>{
-  const dy=e.touches[0].clientY-sy;
-  if(dy>0){
+// ── TOUCH ──────────────────────────────────────
+app.addEventListener("touchstart", e => {
+  sx = e.touches[0].clientX;
+  sy = e.touches[0].clientY;
+}, { passive: true });
+
+app.addEventListener("touchmove", e => {
+  const dy = e.touches[0].clientY - sy;
+  if (dy > 0) {
     e.preventDefault();
-    document.getElementById("depth").style.height=Math.min(dy/2,100)+"%";
+    document.getElementById("depth").style.height = Math.min(dy / 2, 100) + "%";
   }
-},{passive:false});
+}, { passive: false });
 
-app.addEventListener("touchend",e=>{
-  const dx=e.changedTouches[0].clientX-sx;
-  const dy=e.changedTouches[0].clientY-sy;
-  document.getElementById("depth").style.height="0%";
+app.addEventListener("touchend", e => {
+  const dx = e.changedTouches[0].clientX - sx;
+  const dy = e.changedTouches[0].clientY - sy;
+  document.getElementById("depth").style.height = "0%";
+  handleGesture(dx, dy);
+});
 
-  const slide=slides[idx];
-  if(!slide.dataset.key){
-    if(dy>60) next();
+// ── MOUSE ──────────────────────────────────────
+app.addEventListener("mousedown", e => {
+  // Don't intercept clicks on buttons/links
+  if (e.target.closest("button, a, .btn")) return;
+  isDragging = true;
+  sx = e.clientX;
+  sy = e.clientY;
+});
+
+window.addEventListener("mousemove", e => {
+  if (!isDragging) return;
+  const dy = e.clientY - sy;
+  if (dy > 0) {
+    document.getElementById("depth").style.height = Math.min(dy / 2, 100) + "%";
+  }
+});
+
+window.addEventListener("mouseup", e => {
+  if (!isDragging) return;
+  isDragging = false;
+  document.getElementById("depth").style.height = "0%";
+  const dx = e.clientX - sx;
+  const dy = e.clientY - sy;
+  // Only treat as swipe if moved more than 40px
+  if (Math.abs(dx) > 40 || Math.abs(dy) > 40) {
+    handleGesture(dx, dy);
+  }
+});
+
+// ── KEYBOARD ───────────────────────────────────
+document.addEventListener("keydown", e => {
+  switch (e.key) {
+    case "ArrowUp":    e.preventDefault(); handleGesture(0, -80); break;
+    case "ArrowDown":  e.preventDefault(); handleGesture(0,  80); break;
+    case "ArrowRight": e.preventDefault(); handleGesture( 80, 0); break;
+    case "ArrowLeft":  e.preventDefault(); handleGesture(-80, 0); break;
+    case "Enter":
+    case " ":          e.preventDefault(); handleGesture(0,  80); break;
+  }
+});
+
+// ── SHARED GESTURE HANDLER ─────────────────────
+function handleGesture(dx, dy) {
+  const slide = slides[idx];
+
+  // Final slide — swipe down triggers WhatsApp
+  if (!slide.dataset.key) {
+    if (dy > 60) sendWA();
     return;
   }
 
   const optEl = slide.querySelector(".option");
-  let opt = +slide.dataset.opt;
-  const opts = FLOW[idx].options;
+  let opt     = +slide.dataset.opt;
+  const opts  = FLOW[idx].options;
 
-  // SWIPE UP = SKIP
-  if(dy < -60 && Math.abs(dy) > Math.abs(dx)){
+  // UP = SKIP (move to next without saving)
+  if (dy < -60 && Math.abs(dy) > Math.abs(dx)) {
     toast("Skipped");
     next();
     return;
   }
 
-  // SWIPE DOWN = SELECT
-  if(dy > 60 && Math.abs(dy) > Math.abs(dx)){
+  // DOWN = SELECT
+  if (dy > 60 && Math.abs(dy) > Math.abs(dx)) {
     STATE[slide.dataset.key] = opts[opt];
-    toast("Selected");
+    toast("✓ " + opts[opt]);
     next();
     return;
   }
 
-  // RIGHT
-  if(dx > 60){
+  // RIGHT = next option
+  if (dx > 60) {
     opt = (opt + 1) % opts.length;
     slide.dataset.opt = opt;
     swapOption(optEl, opts[opt], "right");
+    return;
   }
 
-  // LEFT
-  if(dx < -60){
+  // LEFT = prev option
+  if (dx < -60) {
     opt = (opt - 1 + opts.length) % opts.length;
     slide.dataset.opt = opt;
     swapOption(optEl, opts[opt], "left");
   }
-});
+}
+
 
 /* ===============================
    WHATSAPP
