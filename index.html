@@ -3,129 +3,360 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>| food.decide · custom |</title>
+<title>| food.decide · custom setup |</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#0a0a0a">
 
 <style>
-:root{
-  --bg:#0a0a0a;
-  --text:#f0f0f0;
-  --accent:#ff671f;
-  --go:#00e676;
-  --mono:'Courier New',monospace;
+:root {
+  --bg: #0a0a0a;
+  --surface: #121316;
+  --surface-border: #22252a;
+  --text: #f0f0f0;
+  --text-muted: #888e9b;
+  --accent: #ff671f;
+  --accent-glow: rgba(255, 103, 31, 0.25);
+  --go: #00e676;
+  --go-glow: rgba(0, 230, 118, 0.25);
+  --mono: 'Courier New', Courier, monospace;
 }
 
-html,body{
-  margin:0;
-  height:100%;
-  background:var(--bg);
-  color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;
-  overflow:hidden;
-  touch-action:none;
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-#app{
-  position:relative;
-  width:100vw;
-  height:100vh;
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  touch-action: pan-y;
 }
 
-.slide{
-  position:absolute;
-  inset:0;
-  transform:translateY(100%);
-  transition:.45s cubic-bezier(.2,.8,.2,1);
-  display:flex;
-  flex-direction:column;
+.slide {
+  position: absolute;
+  inset: 0;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  visibility: hidden;
 }
 
-.slide.active{transform:translateY(0);z-index:10}
-.slide.prev{transform:translateY(-100%)}
-
-.header{
-  padding:20px;
-  border-left:3px solid var(--accent);
-}
-.header span{
-  font-family:var(--mono);
-  font-size:.7rem;
-  color:var(--accent);
+.slide.active {
+  transform: translateY(0);
+  z-index: 10;
+  visibility: visible;
 }
 
-.center{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding:30px;
+.slide.prev {
+  transform: translateY(-100%);
+  visibility: hidden;
 }
 
-h1{
-  margin:0 0 20px 0;
-  color:var(--accent);
+/* Header */
+.header {
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--surface-border);
+  background: rgba(10,10,10,0.9);
+  backdrop-filter: blur(10px);
+  z-index: 20;
 }
 
-.option{
-  font-size:1.4rem;
-  font-weight:700;
-  transition:transform .25s ease,opacity .25s ease;
-  will-change:transform,opacity;
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.option.enter-right{
-  transform:translateX(30px);
-  opacity:0;
-}
-.option.enter-left{
-  transform:translateX(-30px);
-  opacity:0;
-}
-.option.show{
-  transform:translateX(0);
-  opacity:1;
+.header-tag {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1.5px;
 }
 
-.hint{
-  margin-top:40px;
-  font-family:var(--mono);
-  font-size:.7rem;
-  color:#666;
-  display:flex;
-  justify-content:space-between;
+.step-counter {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--surface-border);
 }
 
-#depth{
-  position:fixed;
-  right:0;
-  top:0;
-  width:4px;
-  height:0;
-  background:#333;
+.back-btn {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
 }
 
-#toast{
-  position:fixed;
-  bottom:80px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#222;
-  color:var(--go);
-  padding:8px 16px;
-  border-radius:20px;
-  font-family:var(--mono);
-  opacity:0;
-  transition:.25s;
+.back-btn:hover {
+  color: #fff;
+  border-color: #444;
 }
 
-#toast.show{opacity:1}
+/* Center Content */
+.center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 24px;
+  max-width: 520px;
+  margin: 0 auto;
+  width: 100%;
+}
 
-.btn{
-  background:#25D366;
-  color:#000;
-  padding:18px;
-  border-radius:10px;
-  font-weight:900;
-  text-align:center;
+.question-title {
+  margin: 0 0 28px 0;
+  color: var(--accent);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+/* Option Card Box */
+.option-carousel {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.option-text-wrap {
+  flex: 1;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+}
+
+.option {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  will-change: transform, opacity;
+}
+
+.option.enter-right { transform: translateX(25px); opacity: 0; }
+.option.enter-left  { transform: translateX(-25px); opacity: 0; }
+.option.show        { transform: translateX(0); opacity: 1; }
+
+.cycle-btn {
+  background: #1c1f24;
+  border: 1px solid #2e323b;
+  color: #fff;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.cycle-btn:hover {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+/* Action Controls */
+.action-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.btn-primary {
+  background: var(--go);
+  color: #000;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 800;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px var(--go-glow);
+  transition: transform 0.15s, opacity 0.15s;
+}
+
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid var(--surface-border);
+  font-family: var(--mono);
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  color: #fff;
+  border-color: #444;
+}
+
+.hint-bar {
+  margin-top: 20px;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: #555c68;
+  display: flex;
+  justify-content: space-between;
+  text-align: center;
+}
+
+/* Depth Bar */
+#depth {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 4px;
+  height: 0;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  z-index: 100;
+  transition: height 0.05s linear;
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #181a1f;
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 30px;
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 3000;
+  white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+/* Summary Card on Final Slide */
+.summary-box {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 42vh;
+  overflow-y: auto;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #1a1d24;
+}
+
+.summary-row:last-child { border-bottom: none; }
+
+.summary-key {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.summary-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: right;
+}
+
+.btn-whatsapp {
+  background: #25D366;
+  color: #000;
+  padding: 16px;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 1rem;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 18px rgba(37, 211, 102, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn-copy-req {
+  background: #1e222a;
+  border: 1px solid #333842;
+  color: #fff;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -136,14 +367,14 @@ h1{
 <div id="depth"></div>
 <div id="toast"></div>
 
-<!-- PURE JSON FLOW -->
+<!-- FLOW DEFINITION -->
 <script type="application/json" id="FLOW_JSON">
 {
-  "steps":[
+  "steps": [
     {
-      "key":"business_type",
-      "title":"Your Business Type",
-      "options":[
+      "key": "business_type",
+      "title": "Your Business Type",
+      "options": [
         "Single Restaurant",
         "Cloud Kitchen",
         "Multiple Outlets",
@@ -152,9 +383,9 @@ h1{
       ]
     },
     {
-      "key":"primary_goal",
-      "title":"Primary Goal",
-      "options":[
+      "key": "primary_goal",
+      "title": "Primary Goal",
+      "options": [
         "Reduce platform dependency",
         "WhatsApp-only orders",
         "Internal staff usage",
@@ -163,9 +394,9 @@ h1{
       ]
     },
     {
-      "key":"order_volume",
-      "title":"Estimated Orders / Day",
-      "options":[
+      "key": "order_volume",
+      "title": "Estimated Orders / Day",
+      "options": [
         "< 10",
         "10 – 50",
         "50 – 200",
@@ -173,13 +404,13 @@ h1{
       ]
     },
     {
-      "key":"pricing_intent",
-      "title":"How do you want to pay?",
-      "options":[
-        "Trial / Free",
-        "Monthly fee",
-        "Per inquiry",
-        "Custom setup"
+      "key": "pricing_intent",
+      "title": "Preferred Setup Model",
+      "options": [
+        "Trial / Free Setup",
+        "Monthly Managed Fee",
+        "Pay Per Inquiry",
+        "Full Custom Deployment"
       ]
     }
   ]
@@ -188,212 +419,315 @@ h1{
 
 <script>
 /* ===============================
-   CONFIG
+   CONFIG & STATE
 ================================ */
 const WHATSAPP_NUMBER = "916351537770";
-const FLOW = JSON.parse(
-  document.getElementById("FLOW_JSON").textContent
-).steps;
+const FLOW = JSON.parse(document.getElementById("FLOW_JSON").textContent).steps;
 
-/* ===============================
-   STATE
-================================ */
 const app = document.getElementById("app");
 const slides = [];
 const STATE = {};
 let idx = 0;
 
 /* ===============================
-   HELPERS
+   TOAST HELPER
 ================================ */
-function toast(t){
-  const el=document.getElementById("toast");
-  el.textContent=t;
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
   el.classList.add("show");
-  setTimeout(()=>el.classList.remove("show"),1200);
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove("show"), 1500);
 }
 
-function next(){
-  if(idx>=slides.length-1) return;
+/* ===============================
+   SLIDE NAVIGATION (NEXT & PREV)
+================================ */
+function next() {
+  if (idx >= slides.length - 1) return;
   slides[idx].classList.remove("active");
   slides[idx].classList.add("prev");
   idx++;
+  slides[idx].classList.remove("prev");
   slides[idx].classList.add("active");
+  
+  if (idx === slides.length - 1) {
+    renderFinalSummary();
+  }
 }
 
-function swapOption(el,text,dir){
+function prev() {
+  if (idx <= 0) return;
+  slides[idx].classList.remove("active");
+  idx--;
+  slides[idx].classList.remove("prev");
+  slides[idx].classList.add("active");
+  toast("← Back");
+}
+
+function swapOption(el, text, dir) {
   el.className = `option enter-${dir}`;
-  requestAnimationFrame(()=>{
+  requestAnimationFrame(() => {
     el.textContent = text;
     el.className = "option show";
   });
 }
 
-/* ===============================
-   BUILD UI
-================================ */
-FLOW.forEach((step,i)=>{
-  const s=document.createElement("section");
-  s.className="slide"+(i===0?" active":"");
-  s.dataset.key=step.key;
-  s.dataset.opt=0;
-
-  s.innerHTML=`
-    <div class="header"><span>SWIPE · CUSTOM SETUP</span></div>
-    <div class="center">
-      <h1>${step.title}</h1>
-      <div class="option show">${step.options[0]}</div>
-      <div class="hint">
-        <span>↑ SKIP</span>
-        <span>↓ SELECT</span>
-        <span>← → BROWSE</span>
-      </div>
-    </div>`;
-  app.appendChild(s);
-  slides.push(s);
-});
-
-const final=document.createElement("section");
-final.className="slide";
-final.innerHTML=`
-  <div class="header"><span>FINAL</span></div>
-  <div class="center">
-    <h1>Send Request</h1>
-    <div class="btn" onclick="sendWA()">SEND ON WHATSAPP</div>
-  </div>`;
-app.appendChild(final);
-slides.push(final);
-
-/* ===============================
-   TOUCH HANDLING
-================================ */
-/* ===============================
-   UNIFIED CONTROLS (touch + mouse + keyboard)
-================================ */
-let sx=0, sy=0, isDragging=false;
-
-// ── TOUCH ──────────────────────────────────────
-app.addEventListener("touchstart", e => {
-  sx = e.touches[0].clientX;
-  sy = e.touches[0].clientY;
-}, { passive: true });
-
-app.addEventListener("touchmove", e => {
-  const dy = e.touches[0].clientY - sy;
-  if (dy > 0) {
-    e.preventDefault();
-    document.getElementById("depth").style.height = Math.min(dy / 2, 100) + "%";
-  }
-}, { passive: false });
-
-app.addEventListener("touchend", e => {
-  const dx = e.changedTouches[0].clientX - sx;
-  const dy = e.changedTouches[0].clientY - sy;
-  document.getElementById("depth").style.height = "0%";
-  handleGesture(dx, dy);
-});
-
-// ── MOUSE ──────────────────────────────────────
-app.addEventListener("mousedown", e => {
-  // Don't intercept clicks on buttons/links
-  if (e.target.closest("button, a, .btn")) return;
-  isDragging = true;
-  sx = e.clientX;
-  sy = e.clientY;
-});
-
-window.addEventListener("mousemove", e => {
-  if (!isDragging) return;
-  const dy = e.clientY - sy;
-  if (dy > 0) {
-    document.getElementById("depth").style.height = Math.min(dy / 2, 100) + "%";
-  }
-});
-
-window.addEventListener("mouseup", e => {
-  if (!isDragging) return;
-  isDragging = false;
-  document.getElementById("depth").style.height = "0%";
-  const dx = e.clientX - sx;
-  const dy = e.clientY - sy;
-  // Only treat as swipe if moved more than 40px
-  if (Math.abs(dx) > 40 || Math.abs(dy) > 40) {
-    handleGesture(dx, dy);
-  }
-});
-
-// ── KEYBOARD ───────────────────────────────────
-document.addEventListener("keydown", e => {
-  switch (e.key) {
-    case "ArrowUp":    e.preventDefault(); handleGesture(0, -80); break;
-    case "ArrowDown":  e.preventDefault(); handleGesture(0,  80); break;
-    case "ArrowRight": e.preventDefault(); handleGesture( 80, 0); break;
-    case "ArrowLeft":  e.preventDefault(); handleGesture(-80, 0); break;
-    case "Enter":
-    case " ":          e.preventDefault(); handleGesture(0,  80); break;
-  }
-});
-
-// ── SHARED GESTURE HANDLER ─────────────────────
-function handleGesture(dx, dy) {
-  const slide = slides[idx];
-
-  // Final slide — swipe down triggers WhatsApp
-  if (!slide.dataset.key) {
-    if (dy > 60) sendWA();
-    return;
-  }
-
+function cycleOption(slideIdx, dir) {
+  const slide = slides[slideIdx];
   const optEl = slide.querySelector(".option");
-  let opt     = +slide.dataset.opt;
-  const opts  = FLOW[idx].options;
+  let opt = +slide.dataset.opt;
+  const opts = FLOW[slideIdx].options;
 
-  // UP = SKIP (move to next without saving)
-  if (dy < -60 && Math.abs(dy) > Math.abs(dx)) {
-    toast("Skipped");
-    next();
-    return;
-  }
-
-  // DOWN = SELECT
-  if (dy > 60 && Math.abs(dy) > Math.abs(dx)) {
-    STATE[slide.dataset.key] = opts[opt];
-    toast("✓ " + opts[opt]);
-    next();
-    return;
-  }
-
-  // RIGHT = next option
-  if (dx > 60) {
+  if (dir === 'next') {
     opt = (opt + 1) % opts.length;
     slide.dataset.opt = opt;
     swapOption(optEl, opts[opt], "right");
-    return;
-  }
-
-  // LEFT = prev option
-  if (dx < -60) {
+  } else {
     opt = (opt - 1 + opts.length) % opts.length;
     slide.dataset.opt = opt;
     swapOption(optEl, opts[opt], "left");
   }
 }
 
+function selectCurrent(slideIdx) {
+  const slide = slides[slideIdx];
+  const opt = +slide.dataset.opt;
+  const opts = FLOW[slideIdx].options;
+  STATE[slide.dataset.key] = opts[opt];
+  toast("✓ " + opts[opt]);
+  next();
+}
+
+function skipCurrent(slideIdx) {
+  toast("Skipped");
+  next();
+}
 
 /* ===============================
-   WHATSAPP
+   BUILD QUESTION SLIDES
 ================================ */
-function sendWA(){
-  let txt="📋 *CUSTOM SETUP REQUEST*\n----------------\n";
-  Object.entries(STATE).forEach(([k,v])=>{
-    txt+=`${k.replace(/_/g," ")}: ${v}\n`;
-  });
-  txt+="----------------\nYou decide once. We handle the rest.";
+FLOW.forEach((step, i) => {
+  const s = document.createElement("section");
+  s.className = "slide" + (i === 0 ? " active" : "");
+  s.dataset.key = step.key;
+  s.dataset.opt = 0;
 
-  window.open(
-    `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(txt)}`,
-    "_blank"
-  );
+  s.innerHTML = `
+    <div class="header">
+      <div class="header-left">
+        <span class="header-tag">DECIDE · CUSTOM</span>
+        <span class="step-counter">${i + 1} / ${FLOW.length}</span>
+      </div>
+      ${i > 0 ? `<button class="back-btn" onclick="prev()">← BACK</button>` : `<div></div>`}
+    </div>
+    <div class="center">
+      <h1 class="question-title">${step.title}</h1>
+      
+      <div class="option-carousel">
+        <button class="cycle-btn" onclick="cycleOption(${i}, 'prev')" title="Previous option">‹</button>
+        <div class="option-text-wrap" onclick="cycleOption(${i}, 'next')">
+          <div class="option show">${step.options[0]}</div>
+        </div>
+        <button class="cycle-btn" onclick="cycleOption(${i}, 'next')" title="Next option">›</button>
+      </div>
+
+      <div class="action-controls">
+        <button class="btn-primary" onclick="selectCurrent(${i})">✓ SELECT & CONTINUE (↓)</button>
+        <button class="btn-secondary" onclick="skipCurrent(${i})">SKIP THIS STEP (↑)</button>
+      </div>
+
+      <div class="hint-bar">
+        <span>[↑] SKIP</span>
+        <span>[↓ / ENTER] SELECT</span>
+        <span>[← →] BROWSE</span>
+      </div>
+    </div>`;
+
+  app.appendChild(s);
+  slides.push(s);
+});
+
+/* ===============================
+   BUILD FINAL SUMMARY SLIDE
+================================ */
+const final = document.createElement("section");
+final.className = "slide";
+final.innerHTML = `
+  <div class="header">
+    <div class="header-left">
+      <span class="header-tag">DECIDE · CUSTOM</span>
+      <span class="step-counter">READY</span>
+    </div>
+    <button class="back-btn" onclick="prev()">← EDIT</button>
+  </div>
+  <div class="center">
+    <h1 class="question-title" style="margin-bottom:12px;">Review & Dispatch</h1>
+    <p style="color:var(--text-muted);font-size:0.85rem;margin-top:0;margin-bottom:18px;">
+      We'll tailor the engine specifically for your workflow.
+    </p>
+
+    <div id="final-summary-box" class="summary-box"></div>
+
+    <div class="action-controls">
+      <button class="btn-whatsapp" onclick="sendWA()">
+        <span>💬 SEND ON WHATSAPP</span>
+      </button>
+      <button class="btn-copy-req" onclick="copyRequest()">
+        📋 COPY SPECIFICATION TEXT
+      </button>
+      <button class="btn-secondary" onclick="window.open('https://web.whatsapp.com/send?phone=' + WHATSAPP_NUMBER + '&text=' + encodeURIComponent(buildRequestText()), '_blank')">
+        🌐 OPEN IN WHATSAPP WEB
+      </button>
+    </div>
+  </div>`;
+
+app.appendChild(final);
+slides.push(final);
+
+function buildRequestText() {
+  const answered = Object.entries(STATE);
+  let txt = "📋 *CUSTOM DECISION ENGINE INQUIRY*\n";
+  txt += "---------------------------------\n";
+  if (!answered.length) {
+    txt += "General Custom Setup Inquiry\n";
+  } else {
+    answered.forEach(([k, v]) => {
+      const label = k.replace(/_/g, " ").toUpperCase();
+      txt += `• *${label}*: ${v}\n`;
+    });
+  }
+  txt += "---------------------------------\n";
+  txt += "“You decide once. We handle the rest.”";
+  return txt;
+}
+
+function renderFinalSummary() {
+  const box = document.getElementById("final-summary-box");
+  const answered = Object.entries(STATE);
+  
+  if (!answered.length) {
+    box.innerHTML = `
+      <div style="text-align:center;padding:12px;color:var(--text-muted);font-size:0.85rem;">
+        No specific answers selected. We'll consult you with our default engine setup.
+      </div>`;
+    return;
+  }
+
+  let html = "";
+  answered.forEach(([k, v]) => {
+    html += `
+      <div class="summary-row">
+        <span class="summary-key">${k.replace(/_/g, " ")}</span>
+        <span class="summary-val">${v}</span>
+      </div>`;
+  });
+  box.innerHTML = html;
+}
+
+function copyRequest() {
+  const text = buildRequestText();
+  navigator.clipboard.writeText(text)
+    .then(() => toast("📋 Request copied to clipboard!"))
+    .catch(() => toast("Failed to copy"));
+}
+
+function sendWA() {
+  const txt = buildRequestText();
+  const encoded = encodeURIComponent(txt);
+  
+  toast("Opening WhatsApp...");
+  window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encoded}`, "_blank");
+}
+
+/* ===============================
+   POINTER & KEYBOARD GESTURES
+================================ */
+let startX = 0, startY = 0, isPointerDown = false;
+
+// Unified Pointer (Mouse + Touch)
+app.addEventListener("pointerdown", (e) => {
+  if (e.target.closest("button, .btn, a, .cycle-btn, .option-text-wrap")) return;
+  isPointerDown = true;
+  startX = e.clientX;
+  startY = e.clientY;
+});
+
+window.addEventListener("pointermove", (e) => {
+  if (!isPointerDown) return;
+  const dy = e.clientY - startY;
+  if (dy > 0) {
+    document.getElementById("depth").style.height = Math.min(dy / 2, 100) + "%";
+  }
+});
+
+window.addEventListener("pointerup", (e) => {
+  if (!isPointerDown) return;
+  isPointerDown = false;
+  document.getElementById("depth").style.height = "0%";
+  
+  const dx = e.clientX - startX;
+  const dy = e.clientY - startY;
+  
+  if (Math.abs(dx) > 35 || Math.abs(dy) > 35) {
+    handleGesture(dx, dy);
+  }
+});
+
+window.addEventListener("pointercancel", () => {
+  isPointerDown = false;
+  document.getElementById("depth").style.height = "0%";
+});
+
+// Keyboard Navigation
+document.addEventListener("keydown", (e) => {
+  switch (e.key) {
+    case "ArrowUp":
+      e.preventDefault();
+      if (idx > 0 && e.shiftKey) prev();
+      else handleGesture(0, -80);
+      break;
+    case "ArrowDown":
+      e.preventDefault();
+      handleGesture(0, 80);
+      break;
+    case "ArrowRight":
+      e.preventDefault();
+      handleGesture(80, 0);
+      break;
+    case "ArrowLeft":
+      e.preventDefault();
+      handleGesture(-80, 0);
+      break;
+    case "Enter":
+    case " ":
+      e.preventDefault();
+      handleGesture(0, 80);
+      break;
+    case "Backspace":
+      if (idx > 0) { e.preventDefault(); prev(); }
+      break;
+  }
+});
+
+function handleGesture(dx, dy) {
+  const isHorizontal = Math.abs(dx) > Math.abs(dy);
+
+  if (isHorizontal) {
+    if (idx < FLOW.length) {
+      if (dx > 40) cycleOption(idx, 'next');
+      else if (dx < -40) cycleOption(idx, 'prev');
+    }
+  } else {
+    if (dy > 50) {
+      // SWIPE DOWN = SELECT / ADVANCE
+      if (idx < FLOW.length) selectCurrent(idx);
+      else sendWA();
+    } else if (dy < -50) {
+      // SWIPE UP = SKIP
+      if (idx < FLOW.length) skipCurrent(idx);
+    }
+  }
 }
 </script>
 </body>
